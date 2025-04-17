@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
 
           // Jika token ditemukan, arahkan ke HomePage, jika tidak, ke LoginPage
           if (snapshot.hasData && snapshot.data == true) {
-            return homePage(); // Arahkan ke halaman utama (HomePage)
+            return LoginPage(); // Arahkan ke halaman utama (HomePage)
           } else {
             return LoginPage(); // Arahkan ke halaman login (LoginPage)
           }

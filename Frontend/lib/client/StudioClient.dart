@@ -2,25 +2,33 @@ import 'dart:convert';
 import 'package:http/http.dart';
 
 class StudioClient {
-  static final String baseUrl = '10.0.2.2:8000';
-  static final String endpoint = '/api/studio';
+  static const String baseUrl = '10.0.2.2:8000';
+  static const String endpoint = '/api/studio';
 
   static Future<Map<String, dynamic>> countBookedDate(
       int id, int idFilm) async {
     try {
+      final uri = Uri.http(baseUrl, '$endpoint/countBookedDate/$id/$idFilm');
+
       final response = await get(
-        Uri.parse('$baseUrl$endpoint/countBookedDate/$id/$idFilm'),
+        uri,
+        headers: {
+          'Accept': 'application/json',
+        },
       );
 
+      print("Seat Count Response (${response.statusCode}): ${response.body}");
+
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        return data;
+        return json.decode(response.body) as Map<String, dynamic>;
       } else {
         throw Exception(
-            'Failed to load seat availability: ${response.reasonPhrase}');
+          'Failed to load seat availability: ${response.reasonPhrase}',
+        );
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      print('Error loading seat availability: $e');
+      return Future.error('Error: $e');
     }
   }
 }

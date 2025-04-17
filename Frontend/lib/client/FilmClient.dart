@@ -1,99 +1,130 @@
 import 'dart:convert';
-
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:tubes/entity/Film.dart';
 
 class FilmClient {
-  // Update the base URL
-  static final String url = '10.0.2.2:8000';
+  static final String baseUrl = '10.0.2.2:8000';
   static final String endpoint = '/api/film';
 
   // Fungsi untuk mengambil data film berdasarkan status (Now Playing atau Coming Soon)
   static Future<List<Film>> fetchByStatus(String status, String token) async {
     try {
-      final response = await get(Uri.https(url, '$endpoint/status/$status'),
-          headers: {'Authorization': 'Bearer $token'}); //Buat ngambil token
-      //Wajib karena semua fungsi di backend butuh token -> auth sanctum
+      final uri = Uri.http(baseUrl, '$endpoint/status/$status');
+      final response = await http.get(
+        uri,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
       print("Raw API Response: ${response.statusCode} - ${response.body}");
+
       if (response.statusCode != 200) {
-        throw Exception(response.reasonPhrase);
+        throw Exception(
+            "Server error: ${response.statusCode} - ${response.reasonPhrase}");
       }
 
-      Iterable list = json.decode(response.body)['data'];
+      final decoded = json.decode(response.body);
+      if (!decoded.containsKey('data')) {
+        throw Exception("Invalid response format");
+      }
+
+      Iterable list = decoded['data'];
       return list.map((e) => Film.fromJson(e)).toList();
     } catch (e) {
-      return Future.error(e.toString());
+      return Future.error("fetchByStatus error: $e");
     }
   }
 
+  // Fungsi untuk mengambil studio berdasarkan ID film
   static Future<Map<String, dynamic>> fetchStudioByFilm(int filmId) async {
     try {
-      final response = await get(Uri.https(url, '$endpoint/studio/$filmId'));
+      final uri = Uri.http(baseUrl, '$endpoint/studio/$filmId');
+      final response = await http.get(uri);
 
       if (response.statusCode != 200) {
-        throw Exception(response.reasonPhrase);
+        throw Exception(
+            "Server error: ${response.statusCode} - ${response.reasonPhrase}");
       }
 
       return json.decode(response.body);
     } catch (e) {
-      return Future.error(e.toString());
+      return Future.error("fetchStudioByFilm error: $e");
     }
   }
 
   // Fungsi untuk mengambil jadwal film berdasarkan ID film
   static Future<Map<String, dynamic>> getFilmSchedule(
       int filmId, DateTime? date) async {
-    String formattedDate = DateFormat('dd-MM-yyyy').format(date!);
-    final response =
-        await get(Uri.https(url, '$endpoint/schedule/$filmId/$formattedDate'));
-    print("Datetime: $date");
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print(json.decode(response.body));
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load film schedule');
+    try {
+      String formattedDate = DateFormat('dd-MM-yyyy').format(date!);
+      final uri =
+          Uri.http(baseUrl, '$endpoint/schedule/$filmId/$formattedDate');
+      final response = await http.get(uri);
+
+      print("Datetime: $date");
+      print("Schedule response: ${response.statusCode} - ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        throw Exception("Failed to load film schedule: ${response.statusCode}");
+      }
+    } catch (e) {
+      return Future.error("getFilmSchedule error: $e");
     }
   }
 
   // Fungsi untuk mengambil detail film berdasarkan ID
   static Future<Film> find(int id) async {
     try {
-      var response = await get(Uri.https(url, '$endpoint/$id'));
+      final uri = Uri.http(baseUrl, '$endpoint/$id');
+      final response = await http.get(uri);
 
       if (response.statusCode != 200) {
-        throw Exception(response.reasonPhrase);
+        throw Exception(
+            "Server error: ${response.statusCode} - ${response.reasonPhrase}");
       }
 
-      final jsonResponse = json.decode(response.body);
-      final data = jsonResponse['data'];
+      final decoded = json.decode(response.body);
+      if (!decoded.containsKey('data')) {
+        throw Exception("Invalid response format");
+      }
 
-      return Film.fromJson(data);
+      return Film.fromJson(decoded['data']);
     } catch (e) {
-      return Future.error(e.toString());
+      return Future.error("find error: $e");
     }
   }
 
-  //Fungsi untuk handle search movie
+  // Fungsi untuk handle search movie
   static Future<List<Film>> searchMovies(
       String query, String status, String token) async {
     try {
-      final response = await get(
-        Uri.https(url, '$endpoint/search', {'query': query, 'status': status}),
+      final uri = Uri.http(baseUrl, '$endpoint/search', {
+        'query': query,
+        'status': status,
+      });
+
+      final response = await http.get(
+        uri,
         headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode != 200) {
-        throw Exception(response.reasonPhrase);
+        throw Exception(
+            "Server error: ${response.statusCode} - ${response.reasonPhrase}");
       }
 
-      final data = json.decode(response.body);
-      final films =
-          (data['data'] as List).map((film) => Film.fromJson(film)).toList();
+      final decoded = json.decode(response.body);
+      if (!decoded.containsKey('data')) {
+        throw Exception("Invalid response format");
+      }
 
+      final films =
+          (decoded['data'] as List).map((film) => Film.fromJson(film)).toList();
       return films;
     } catch (e) {
-      return Future.error('Failed to search movies: $e');
+      return Future.error("searchMovies error: $e");
     }
   }
 }

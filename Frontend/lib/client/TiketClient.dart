@@ -1,11 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import 'package:tubes/entity/Tiket.dart';
-import 'package:tubes/entity/JadwalTayang.dart';
-import 'FilmClient.dart';
-import 'JadwalTayangClient.dart';
 
 class TiketClient {
   // Update the base URL
@@ -16,12 +12,12 @@ class TiketClient {
   static Future<List<Tiket>> fetchTicketsByUser(
       int userId, String token) async {
     try {
-      final response = await get(
-        Uri.parse('$_baseUrl$_endpoint/user/$userId'),
+      final response = await http.get(
+        Uri.http(_baseUrl, '$_endpoint/user/$userId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
-      // Add this line here to inspect the raw JSON coming from the server
+      // Inspect the raw response from the API
       print("Raw API Response: ${response.body}");
 
       if (response.statusCode != 200) {
@@ -33,22 +29,21 @@ class TiketClient {
 
       List<Tiket> tickets = jsonList.map((data) {
         print("Mapping ticket data: $data");
-        print("jadwal_tayang: ${data["jadwal_tayang"]}");
-        print("film object: ${data["jadwal_tayang"]?["film"]}");
-        print("judul_film: ${data["jadwal_tayang"]?["film"]?["judul_film"]}");
         return Tiket.fromJson(data);
       }).toList();
 
       return tickets;
     } catch (e) {
+      print('Error fetching tickets: $e');
       return Future.error('Error fetching tickets: $e');
     }
   }
 
+  /// Fetch a ticket by ID with detailed film information
   static Future<Tiket> find(int id, String token) async {
     try {
       final response = await http.get(
-        Uri.https(_baseUrl, '$_endpoint/$id'),
+        Uri.http(_baseUrl, '$_endpoint/$id'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -59,13 +54,12 @@ class TiketClient {
       final jsonData = json.decode(response.body)['data'];
       Tiket tiket = Tiket.fromJson(jsonData);
 
-      // Fetch related JadwalTayang and Film data
+      // Handle related JadwalTayang and Film data
       var jadwalTayangData = jsonData['jadwal_tayang'];
       if (jadwalTayangData != null) {
         tiket.jamTayang = jadwalTayangData['jam_tayang'];
         tiket.tanggal = jadwalTayangData['tanggal'];
 
-        // Fetch related Film data
         var filmData = jadwalTayangData['film'];
         if (filmData != null) {
           tiket.judulFilm = filmData['judul_film'];
@@ -74,17 +68,17 @@ class TiketClient {
         }
       }
 
-      // Default film duration to 120 minutes (2 hours)
-      int filmDuration = 120;
+      // Calculate film end time and assign status
+      int filmDuration = 120; // Default duration (120 minutes)
       DateTime jamTayang = DateTime.parse(tiket.jamTayang!);
       DateTime endTime = jamTayang.add(Duration(minutes: filmDuration));
 
-      // Calculate and assign the status
       tiket.status =
           DateTime.now().isBefore(endTime) ? "on progress" : "history";
 
       return tiket;
     } catch (e) {
+      print('Error fetching ticket: $e');
       return Future.error('Error fetching ticket: $e');
     }
   }
@@ -98,7 +92,7 @@ class TiketClient {
           "Headers: {Content-Type: application/json, Authorization: Bearer $token}");
       print("Body: ${json.encode(tiketData)}");
 
-      final response = await post(
+      final response = await http.post(
         Uri.parse('$_baseUrl$_endpoint'),
         headers: {
           'Content-Type': 'application/json',
@@ -107,24 +101,19 @@ class TiketClient {
         body: json.encode(tiketData),
       );
 
-      // Check for a successful response
-      if (response.statusCode != 201 && response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Failed to create ticket: ${response.reasonPhrase}');
       }
 
-      // Parse the response body
       var responseBody = json.decode(response.body);
 
-      // Check if 'data' exists in the response body
       if (responseBody.containsKey('data') && responseBody['data'] != null) {
-        var jsonData = responseBody['data'];
-
-        print("Ticket Data: $jsonData");
-        return Tiket.fromJson(jsonData);
+        return Tiket.fromJson(responseBody['data']);
       } else {
         throw Exception('Missing data in response');
       }
     } catch (e) {
+      print("Error creating ticket: $e");
       return Future.error('Error creating ticket: $e');
     }
   }
@@ -134,7 +123,7 @@ class TiketClient {
       int id, Map<String, dynamic> tiketData, String token) async {
     try {
       final response = await http.put(
-        Uri.https(_baseUrl, '$_endpoint/$id'),
+        Uri.http(_baseUrl, '$_endpoint/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -149,6 +138,7 @@ class TiketClient {
       final jsonData = json.decode(response.body)['data'];
       return Tiket.fromJson(jsonData);
     } catch (e) {
+      print('Error updating ticket: $e');
       return Future.error('Error updating ticket: $e');
     }
   }
@@ -157,7 +147,7 @@ class TiketClient {
   static Future<void> delete(int id, String token) async {
     try {
       final response = await http.delete(
-        Uri.https(_baseUrl, '$_endpoint/$id'),
+        Uri.http(_baseUrl, '$_endpoint/$id'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -165,6 +155,7 @@ class TiketClient {
         throw Exception('Failed to delete ticket: ${response.reasonPhrase}');
       }
     } catch (e) {
+      print('Error deleting ticket: $e');
       return Future.error('Error deleting ticket: $e');
     }
   }

@@ -3,15 +3,22 @@ import 'package:http/http.dart';
 import 'package:tubes/entity/Review.dart';
 
 class ReviewClient {
-  static final String baseUrl = '10.0.2.2:8000';
-  static final String endpoint = '/api/review';
+  static const String baseUrl = '10.0.2.2:8000';
+  static const String endpoint = '/api/review';
 
+  // Fetch reviews for a specific film
   static Future<ResponseReview> fetchReview(int idFilm, String? token) async {
     try {
+      final uri = Uri.http(baseUrl, '$endpoint/$idFilm');
       final response = await get(
-        Uri.parse('$baseUrl$endpoint/$idFilm'),
-        headers: {'Authorization': 'Bearer $token'},
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
       );
+
+      print("Fetch Review (${response.statusCode}): ${response.body}");
 
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch reviews: ${response.reasonPhrase}');
@@ -22,19 +29,27 @@ class ReviewClient {
 
       return ResponseReview.fromJson(data);
     } catch (e) {
-      print('Error fetching reviews: ${e.toString()}');
-      return Future.error(e.toString());
+      print('Error fetching reviews: $e');
+      return Future.error('Error fetching reviews: $e');
     }
   }
 
-  static Future<bool> storeReview(int? idFilm, int? idUser, int ratingReview,
-      String description, String? token) async {
+  // Store a new review
+  static Future<bool> storeReview(
+    int? idFilm,
+    int? idUser,
+    int ratingReview,
+    String description,
+    String? token,
+  ) async {
     try {
+      final uri = Uri.http(baseUrl, endpoint);
       final response = await post(
-        Uri.parse('$baseUrl$endpoint'),
+        uri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
         },
         body: json.encode({
           'id_film': idFilm,
@@ -44,16 +59,17 @@ class ReviewClient {
         }),
       );
 
+      print("Store Review (${response.statusCode}): ${response.body}");
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print("Review successfully added.");
         return true;
       } else {
         print("Failed to add review: ${response.reasonPhrase}");
         return false;
       }
     } catch (e) {
-      print("Error occurred: ${e.toString()}");
-      return Future.error(e.toString());
+      print("Error storing review: $e");
+      return Future.error('Error storing review: $e');
     }
   }
 }

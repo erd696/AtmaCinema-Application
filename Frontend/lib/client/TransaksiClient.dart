@@ -18,7 +18,7 @@ class TransaksiClient {
 
     try {
       final response = await post(
-        Uri.parse('$baseUrl$endpoint'),
+        Uri.http(baseUrl, endpoint),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -37,11 +37,11 @@ class TransaksiClient {
         return idTransaksi;
       } else {
         print('Failed to store data: ${response.body}');
-        return null;
+        return Future.error('Failed to store transaction: ${response.body}');
       }
     } catch (e) {
       print('Error: $e');
-      return null;
+      return Future.error('Error while storing transaction: $e');
     }
   }
 }

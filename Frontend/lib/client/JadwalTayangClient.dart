@@ -8,17 +8,30 @@ class JadwaltayangClient {
 
   static Future<List<Jadwaltayang>> fetchAllJadwal(String token) async {
     try {
+      final uri = Uri.http(_baseUrl, _endpoint);
       final response = await http.get(
-        Uri.parse('$_baseUrl$_endpoint'),
-        headers: {'Authorization': 'Bearer $token'},
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
       );
 
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
       if (response.statusCode != 200) {
-        throw Exception('Failed to fetch Jadwal: ${response.reasonPhrase}');
+        throw Exception(
+            'Failed to fetch Jadwal: ${response.statusCode} - ${response.reasonPhrase}');
       }
 
-      Iterable jsonList = json.decode(response.body)['data'];
+      final decoded = json.decode(response.body);
 
+      if (!decoded.containsKey('data')) {
+        throw Exception("Invalid response structure: 'data' key missing");
+      }
+
+      Iterable jsonList = decoded['data'];
       return jsonList.map((data) => Jadwaltayang.fromJson(data)).toList();
     } catch (e) {
       return Future.error('Error fetching JadwalTayang: $e');

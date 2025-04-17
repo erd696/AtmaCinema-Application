@@ -11,7 +11,7 @@ class UserClient {
   static Future<bool> registerEmail(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/register/email'),
+        Uri.http(baseUrl, '$apiPath/register/email'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
@@ -31,7 +31,7 @@ class UserClient {
   static Future<bool> registerUser(User user) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/register/data'),
+        Uri.http(baseUrl, '$apiPath/register/data'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'first_name': user.first_name,
@@ -59,7 +59,7 @@ class UserClient {
   static Future<User> login(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/login'),
+        Uri.http(baseUrl, '$apiPath/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'email': email, 'password': password}),
       );
@@ -81,14 +81,14 @@ class UserClient {
         throw Exception('Failed to login');
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      throw Exception('Error during login: $e');
     }
   }
 
   static Future<User?> getProfile(String token) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl$apiPath/user/profile'),
+        Uri.http(baseUrl, '$apiPath/user/profile'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -100,7 +100,7 @@ class UserClient {
       }
     } catch (e) {
       print('Error: $e');
-      return null;
+      return Future.error('Error fetching profile: $e');
     }
   }
 
@@ -114,7 +114,7 @@ class UserClient {
       XFile? profilePicture) async {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('$baseUrl$apiPath/user/profile'),
+      Uri.http(baseUrl, '$apiPath/user/profile'),
     );
 
     request.fields['first_name'] = first_name;
@@ -151,7 +151,7 @@ class UserClient {
   static Future<String?> logout(String token) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/logout'),
+        Uri.http(baseUrl, '$apiPath/logout'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -172,7 +172,7 @@ class UserClient {
       String token, String oldPassword, String newPassword) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/user/changePassword'),
+        Uri.http(baseUrl, '$apiPath/user/changePassword'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -184,10 +184,8 @@ class UserClient {
       );
 
       if (response.statusCode == 200) {
-        // Asumsikan jika 200 berarti success
         return true;
       } else {
-        // Cetak pesan error dari server untuk debugging
         print('Failed to change password: ${response.body}');
         return false;
       }
@@ -200,7 +198,7 @@ class UserClient {
   static Future<bool> resetPassword(String otpToken, String newPassword) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$apiPath/user/reset-password'),
+        Uri.http(baseUrl, '$apiPath/user/reset-password'),
         headers: {
           'Authorization': 'Bearer $otpToken',
           'Content-Type': 'application/json',
