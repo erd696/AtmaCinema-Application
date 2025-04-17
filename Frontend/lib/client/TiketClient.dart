@@ -9,11 +9,12 @@ import 'JadwalTayangClient.dart';
 
 class TiketClient {
   // Update the base URL
-  static const String _baseUrl = 'https://floralwhite-elephant-198508.hostingersite.com';
+  static const String _baseUrl = '10.0.2.2:8000';
   static const String _endpoint = '/api/tiket';
 
   /// Fetch tickets by user ID and include related film data
-  static Future<List<Tiket>> fetchTicketsByUser(int userId, String token) async {
+  static Future<List<Tiket>> fetchTicketsByUser(
+      int userId, String token) async {
     try {
       final response = await get(
         Uri.parse('$_baseUrl$_endpoint/user/$userId'),
@@ -89,10 +90,12 @@ class TiketClient {
   }
 
   /// Create a new ticket
-  static Future<Tiket> create(Map<String, dynamic> tiketData, String? token) async {
+  static Future<Tiket> create(
+      Map<String, dynamic> tiketData, String? token) async {
     try {
       print("Sending POST request to: $_baseUrl$_endpoint");
-      print("Headers: {Content-Type: application/json, Authorization: Bearer $token}");
+      print(
+          "Headers: {Content-Type: application/json, Authorization: Bearer $token}");
       print("Body: ${json.encode(tiketData)}");
 
       final response = await post(
@@ -125,7 +128,6 @@ class TiketClient {
       return Future.error('Error creating ticket: $e');
     }
   }
-
 
   /// Update an existing ticket by ID
   static Future<Tiket> update(

@@ -3,8 +3,7 @@ import 'package:http/http.dart';
 import 'package:tubes/entity/MakananMinuman.dart';
 
 class MakananMinumanClient {
-  static final String baseUrl =
-      'https://floralwhite-elephant-198508.hostingersite.com';
+  static final String baseUrl = '10.0.2.2:8000';
   static final String endpoint = '/api/makanan_minuman';
 
   static Future<List<Makananminuman>> fetchByKategori(

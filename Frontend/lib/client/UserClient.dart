@@ -5,8 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserClient {
-  static final String baseUrl =
-      'https://floralwhite-elephant-198508.hostingersite.com';
+  static final String baseUrl = '10.0.2.2:8000';
   static final String apiPath = '/api';
 
   static Future<bool> registerEmail(String email) async {

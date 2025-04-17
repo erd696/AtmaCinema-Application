@@ -6,7 +6,7 @@ import 'package:tubes/entity/Film.dart';
 
 class FilmClient {
   // Update the base URL
-  static final String url = 'floralwhite-elephant-198508.hostingersite.com';
+  static final String url = '10.0.2.2:8000';
   static final String endpoint = '/api/film';
 
   // Fungsi untuk mengambil data film berdasarkan status (Now Playing atau Coming Soon)

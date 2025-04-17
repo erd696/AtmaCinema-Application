@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:tubes/entity/JadwalTayang.dart';
 
 class JadwaltayangClient {
-  static const String _baseUrl =
-      'https://floralwhite-elephant-198508.hostingersite.com';
+  static const String _baseUrl = '10.0.2.2:8000';
   static const String _endpoint = '/api/jadwal_tayang';
 
   static Future<List<Jadwaltayang>> fetchAllJadwal(String token) async {

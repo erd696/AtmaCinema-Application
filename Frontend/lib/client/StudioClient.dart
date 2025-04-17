@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 
 class StudioClient {
-  static final String baseUrl =
-      'https://floralwhite-elephant-198508.hostingersite.com';
+  static final String baseUrl = '10.0.2.2:8000';
   static final String endpoint = '/api/studio';
 
   static Future<Map<String, dynamic>> countBookedDate(
