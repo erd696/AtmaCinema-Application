@@ -1,9 +1,9 @@
 # ATMA CINEMA
 
-## Created By : 
+## Created By: 
 - Frendy
 - Eric Daniswara Octa Wijaya
 - Fabian Alexander Pramana
 - Vince Carter
 
-![Login Page](img/login.png)
+<img src="img/login.png" alt="Login Page" width="500" />
